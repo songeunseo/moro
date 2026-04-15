@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="페이지-1" id="DRKZEaQvtGuKBkeMmr0Y">
+    <mxGraphModel dx="1075" dy="866" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="OgMZD5PZpXur6faWMS-0-5" edge="1" parent="1" source="OgMZD5PZpXur6faWMS-0-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OgMZD5PZpXur6faWMS-0-2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Create graph&lt;div&gt;from map&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="140" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-6" edge="1" parent="1" source="OgMZD5PZpXur6faWMS-0-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OgMZD5PZpXur6faWMS-0-3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Run search&lt;div&gt;algorithm&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="280" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-7" edge="1" parent="1" source="OgMZD5PZpXur6faWMS-0-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OgMZD5PZpXur6faWMS-0-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Reconstruct path&lt;div&gt;from goal to start&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="420" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Publish path to&lt;div&gt;move_base&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="560" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Global planning" vertex="1">
+          <mxGeometry height="30" width="90" x="140" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-9" edge="1" parent="1" source="OgMZD5PZpXur6faWMS-0-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OgMZD5PZpXur6faWMS-0-12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Determine current&lt;div&gt;goal relative to robot&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="140" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-11" edge="1" parent="1" source="OgMZD5PZpXur6faWMS-0-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OgMZD5PZpXur6faWMS-0-14" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Generate valid&lt;div&gt;control signals&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="280" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-13" edge="1" parent="1" source="OgMZD5PZpXur6faWMS-0-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OgMZD5PZpXur6faWMS-0-15" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-14" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Simulate outcome&lt;div&gt;of controls&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="420" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-15" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Publish best control&lt;div&gt;and estimated&lt;/div&gt;&lt;div&gt;trajectory&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="560" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Local planning" vertex="1">
+          <mxGeometry height="30" width="90" x="140" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="OgMZD5PZpXur6faWMS-0-17" parent="1" style="text;whiteSpace=wrap;html=1;" value="&lt;em style=&quot;print-color-adjust: exact; font-style: italic; color: rgba(0, 0, 0, 0.87); font-family: system-ui, -apple-system, blinkmacsystemfont, &amp;quot;Segoe UI&amp;quot;, helvetica, arial, sans-serif, &amp;quot;Apple Color Emoji&amp;quot;, &amp;quot;Segoe UI Emoji&amp;quot;, &amp;quot;Segoe UI Symbol&amp;quot;; font-size: 14px; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial;&quot;&gt;Figure 1: Pipelines for global planning using search and local planning using forward simulation.&lt;/em&gt;" vertex="1">
+          <mxGeometry height="60" width="620" x="110" y="530" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
