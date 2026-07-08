@@ -68,13 +68,12 @@ def generate_launch_description():
         }.items()
     )
 
-    ## NAV 2
-    nav2_bringup_cmd = IncludeLaunchDescription(
+    ## NAV 2 localization only
+    nav2_localization_cmd = IncludeLaunchDescription(
     PythonLaunchDescriptionSource(
-        os.path.join(nav2_launch_dir, 'bringup_launch.py')),
+        os.path.join(nav2_launch_dir, 'localization_launch.py')),
     launch_arguments={'namespace': "",
                       'use_namespace': "False",
-                      'slam': "False",
                       'map': map_yaml_path,
                       'use_sim_time': use_sim_time,
                       'params_file': params_file_path,
@@ -114,5 +113,5 @@ def generate_launch_description():
     return LaunchDescription([
         gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
         spawn_turtlebot_cmd, robot_state_publisher_cmd, set_env_vars_resources,
-        nav2_bringup_cmd, global_planner_cmd, local_control_cmd, rviz_cmd
+        nav2_localization_cmd, global_planner_cmd, local_control_cmd, rviz_cmd
     ])
