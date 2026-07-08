@@ -29,10 +29,11 @@ class GlobalPlanner(Node):
         self.declare_parameter('exit_row', 22)
         self.declare_parameter('exit_col', 22)
         self.declare_parameter('final_yaw', 0.0)
+        self.declare_parameter('candidate_rows', [4, 10, 16, 22])
+        self.declare_parameter('candidate_cols', [4, 10, 16, 22])
         self.declare_parameter('occupied_threshold', 50)
         self.declare_parameter('allow_unknown', False)
         self.declare_parameter('obstacle_padding_cells', 0)
-        self.declare_parameter('use_diagonal_motion', False)
 
         self.frame_id = self.get_parameter('frame_id').value
         self.base_frame = self.get_parameter('base_frame').value
@@ -41,15 +42,19 @@ class GlobalPlanner(Node):
         self.allow_unknown = bool(self.get_parameter('allow_unknown').value)
         self.obstacle_padding_cells = int(
             self.get_parameter('obstacle_padding_cells').value)
-        self.use_diagonal_motion = bool(
-            self.get_parameter('use_diagonal_motion').value)
         self.exit_row = int(self.get_parameter('exit_row').value)
         self.exit_col = int(self.get_parameter('exit_col').value)
         self.final_yaw = float(self.get_parameter('final_yaw').value)
+        self.candidate_rows = [
+            int(v) for v in self.get_parameter('candidate_rows').value]
+        self.candidate_cols = [
+            int(v) for v in self.get_parameter('candidate_cols').value]
 
         self.map_msg = None
         self.map_future = None
         self.free_grid = None
+        self.graph = None
+        self.graph_nodes = None
         self.last_path = None
 
         self.tf_buffer = tf2_ros.Buffer()
@@ -63,11 +68,16 @@ class GlobalPlanner(Node):
         self.get_logger().info('GlobalPlanner node started.')
 
     def plan_and_publish(self):
+        if self.last_path is not None:
+            self.publish_path(self.last_path)
+            return
+
         if self.map_msg is None:
             self.map_msg = self.request_map()
             if self.map_msg is None:
                 return
             self.free_grid = self.build_free_grid(self.map_msg)
+            self.graph_nodes, self.graph = self.create_sparse_graph()
 
         try:
             robot_pose = self.localise_robot()
@@ -77,13 +87,13 @@ class GlobalPlanner(Node):
                 self.publish_path(self.last_path)
             return
 
-        start = self.nearest_free_cell(robot_pose[0], robot_pose[1])
-        goal = self.resolve_goal(start)
+        start = self.nearest_graph_node(robot_pose[0], robot_pose[1])
+        goal = self.resolve_goal()
         if start is None or goal is None:
             self.get_logger().error('Could not resolve start or goal cell.')
             return
 
-        path_cells = self.bfs(start, goal)
+        path_cells = self.bfs_graph(start, goal)
         if not path_cells:
             self.get_logger().error(
                 f'No path found from {start} to {goal}.')
@@ -156,36 +166,78 @@ class GlobalPlanner(Node):
 
         return free
 
-    def resolve_goal(self, start):
+    def create_sparse_graph(self):
+        nodes = []
+        rows, cols = self.free_grid.shape
+
+        for row in self.candidate_rows:
+            for col in self.candidate_cols:
+                if 0 <= row < rows and 0 <= col < cols and self.free_grid[row, col]:
+                    nodes.append((row, col))
+
+        node_set = set(nodes)
+        graph = {node: set() for node in nodes}
+
+        for row, col in nodes:
+            for next_col in self.candidate_cols:
+                if next_col <= col or (row, next_col) not in node_set:
+                    continue
+                if self.path_is_free(row, col, row, next_col):
+                    graph[(row, col)].add((row, next_col))
+                    graph[(row, next_col)].add((row, col))
+                    break
+
+            for next_row in self.candidate_rows:
+                if next_row <= row or (next_row, col) not in node_set:
+                    continue
+                if self.path_is_free(row, col, next_row, col):
+                    graph[(row, col)].add((next_row, col))
+                    graph[(next_row, col)].add((row, col))
+                    break
+
+        return nodes, graph
+
+    def path_is_free(self, row1, col1, row2, col2):
+        if row1 == row2:
+            start = min(col1, col2)
+            end = max(col1, col2)
+            return all(self.is_free(row1, col) for col in range(start, end + 1))
+
+        if col1 == col2:
+            start = min(row1, row2)
+            end = max(row1, row2)
+            return all(self.is_free(row, col1) for row in range(start, end + 1))
+
+        return False
+
+    def is_free(self, row, col):
+        rows, cols = self.free_grid.shape
+        return 0 <= row < rows and 0 <= col < cols and self.free_grid[row, col]
+
+    def resolve_goal(self):
         goal_x = float(self.get_parameter('goal_x').value)
         goal_y = float(self.get_parameter('goal_y').value)
         if math.isfinite(goal_x) and math.isfinite(goal_y):
-            return self.nearest_free_cell(goal_x, goal_y)
-        rows, cols = self.free_grid.shape
-        if (0 <= self.exit_row < rows and 0 <= self.exit_col < cols
-                and self.free_grid[self.exit_row, self.exit_col]):
+            return self.nearest_graph_node(goal_x, goal_y)
+
+        if (self.exit_row, self.exit_col) in self.graph:
             return (self.exit_row, self.exit_col)
 
         x, y = self.map_to_world(self.exit_row, self.exit_col)
-        return self.nearest_free_cell(x, y)
+        return self.nearest_graph_node(x, y)
 
-    def nearest_free_cell(self, x, y):
-        row, col = self.world_to_map(x, y)
-        rows, cols = self.free_grid.shape
-        if 0 <= row < rows and 0 <= col < cols and self.free_grid[row, col]:
-            return (row, col)
-
+    def nearest_graph_node(self, x, y):
         best = None
         best_dist = float('inf')
-        free_rows, free_cols = np.where(self.free_grid)
-        for free_row, free_col in zip(free_rows, free_cols):
-            dist = (free_row - row) ** 2 + (free_col - col) ** 2
+        for node in self.graph_nodes:
+            node_x, node_y = self.map_to_world(*node)
+            dist = (node_x - x) ** 2 + (node_y - y) ** 2
             if dist < best_dist:
-                best = (int(free_row), int(free_col))
+                best = node
                 best_dist = dist
         return best
 
-    def bfs(self, start, goal):
+    def bfs_graph(self, start, goal):
         queue = deque([start])
         parent = {start: None}
 
@@ -194,7 +246,7 @@ class GlobalPlanner(Node):
             if current == goal:
                 break
 
-            for child in self.neighbours(current):
+            for child in self.graph.get(current, []):
                 if child in parent:
                     continue
                 parent[child] = current
@@ -210,21 +262,6 @@ class GlobalPlanner(Node):
             current = parent[current]
         path.reverse()
         return path
-
-    def neighbours(self, cell):
-        row, col = cell
-        moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        if self.use_diagonal_motion:
-            moves += [(-1, -1), (-1, 1), (1, -1), (1, 1)]
-
-        rows, cols = self.free_grid.shape
-        for d_row, d_col in moves:
-            next_row = row + d_row
-            next_col = col + d_col
-            if not (0 <= next_row < rows and 0 <= next_col < cols):
-                continue
-            if self.free_grid[next_row, next_col]:
-                yield (next_row, next_col)
 
     def cells_to_poses(self, path_cells):
         points = [self.map_to_world(row, col) for row, col in path_cells]

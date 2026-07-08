@@ -88,9 +88,17 @@ class LocalController(Node):
             theta = R.from_quat([q.x, q.y, q.z, q.w]).as_euler('xyz')[2]
             path.append([x, y, theta])
 
+        if self.same_path(path):
+            return
+
         self.global_path = path
         self.current_goal_id = 0
         self.get_logger().info(f'Received global path with {len(path)} waypoints.')
+
+    def same_path(self, path):
+        if self.global_path is None or len(path) != len(self.global_path):
+            return False
+        return np.allclose(np.array(path), np.array(self.global_path), atol=1e-3)
 
     def control_loop(self):
         if self.global_path is None:
