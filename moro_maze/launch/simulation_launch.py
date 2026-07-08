@@ -106,7 +106,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'use_sim_time': use_sim_time,
-            'cmd_vel_stamped': False,
+            'cmd_vel_stamped': True,
         }]
     )
 

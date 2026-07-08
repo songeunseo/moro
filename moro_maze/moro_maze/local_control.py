@@ -47,7 +47,7 @@ class LocalController(Node):
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
         self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.3  # [m]
-        self.declare_parameter('cmd_vel_stamped', False)
+        self.declare_parameter('cmd_vel_stamped', True)
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('pose_frame', 'map')
         self.declare_parameter('odom_frame', 'odom')
@@ -73,8 +73,8 @@ class LocalController(Node):
             Path, '/global_planner/path', self.path_callback, 10)
 
         # ---- Pub ----
-        self.cmd_pub = self.create_publisher(Twist, self.cmd_vel_topic, 10)
-        self.cmd_stamped_pub = self.create_publisher(TwistStamped, self.cmd_vel_topic, 10)
+        cmd_type = TwistStamped if self.cmd_vel_stamped else Twist
+        self.cmd_pub = self.create_publisher(cmd_type, self.cmd_vel_topic, 10)
         self.trajectory_pub = self.create_publisher(Path, '/local_planner/trajectory', 10)
         self.goal_pub = self.create_publisher(PoseStamped, '/local_planner/goal', 10)
 
@@ -82,7 +82,8 @@ class LocalController(Node):
         self.timer = self.create_timer(self.ts, self.control_loop)
 
         self.get_logger().info(
-            f'LocalController node started. Publishing Twist and TwistStamped on {self.cmd_vel_topic}.')
+            f'LocalController node started. Publishing '
+            f'{"TwistStamped" if self.cmd_vel_stamped else "Twist"} on {self.cmd_vel_topic}.')
 
     # -------------------------------------------------
     # callback
@@ -286,16 +287,17 @@ class LocalController(Node):
     # Publisher
     # -------------------------------------------------
     def pub_cmd(self, control):
-        msg = Twist()
-        msg.linear.x = float(control[0])
-        msg.angular.z = float(control[1])
+        if self.cmd_vel_stamped:
+            msg = TwistStamped()
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.frame_id = 'base_link'
+            msg.twist.linear.x = float(control[0])
+            msg.twist.angular.z = float(control[1])
+        else:
+            msg = Twist()
+            msg.linear.x = float(control[0])
+            msg.angular.z = float(control[1])
         self.cmd_pub.publish(msg)
-
-        stamped = TwistStamped()
-        stamped.header.stamp = self.get_clock().now().to_msg()
-        stamped.header.frame_id = 'base_link'
-        stamped.twist = msg
-        self.cmd_stamped_pub.publish(stamped)
 
     def pub_trajectory(self, trajectory):
         msg = Path()
