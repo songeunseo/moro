@@ -47,6 +47,8 @@ class LocalController(Node):
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
         self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.3  # [m]
+        self.max_v = 0.12
+        self.max_w = 1.0
         self.declare_parameter('cmd_vel_stamped', True)
         self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('pose_frame', 'map')
@@ -133,25 +135,21 @@ class LocalController(Node):
         T_goal = self.pose2tf_mat(goal)
         goalpose = self.tf_mat2pose(np.linalg.inv(T_robot) @ T_goal)
 
-        # 4. 제어 신호 생성
-        controls = self.generate_controls(self.last_control)
-
-        # 5. forward simulation으로 각 제어 평가
-        costs, trajectories = self.evaluate_controls(controls, goalpose)
-
-        # 6. 최적 제어 선택
-        idx = np.argmin(costs)
-        self.last_control = controls[idx]
-        self.robot_model_pt2.update(self.last_control[0])
         dist = float(np.hypot(goalpose[0], goalpose[1]))
 
+        # 4. waypoint 추종 제어 생성
+        control = self.track_goal_control(goalpose)
+        self.last_control = control
+        self.robot_model_pt2.update(control[0])
+        trajectory = self.rollout_trajectory(control)
+
         # 7. 퍼블리시
-        self.pub_cmd(controls[idx])
+        self.pub_cmd(control)
         self.get_logger().info(
-            f'cmd v={controls[idx][0]:.3f}, w={controls[idx][1]:.3f}, '
+            f'cmd v={control[0]:.3f}, w={control[1]:.3f}, '
             f'goal_dist={dist:.3f}, waypoint={self.current_goal_id}/{len(self.global_path)}',
             throttle_duration_sec=1.0)
-        self.pub_trajectory(trajectories[idx])
+        self.pub_trajectory(trajectory)
         self.pub_goal(goalpose)
 
         # 8. 목표 도달 판정 -> 다음 waypoint로
@@ -205,6 +203,31 @@ class LocalController(Node):
         y = T[1, 2]
         theta = np.arctan2(T[1, 0], T[0, 0])
         return np.array([x, y, theta])
+
+    def track_goal_control(self, goalpose):
+        distance = float(np.hypot(goalpose[0], goalpose[1]))
+        heading_error = float(np.arctan2(goalpose[1], goalpose[0]))
+
+        if distance < self.goal_tolerance:
+            return np.array([0.0, 0.0])
+
+        w = float(np.clip(1.8 * heading_error, -self.max_w, self.max_w))
+
+        if abs(heading_error) > 0.75:
+            v = 0.0
+        else:
+            v = min(self.max_v, max(0.04, 0.35 * distance))
+            v *= max(0.25, np.cos(heading_error))
+
+        return np.array([float(v), w])
+
+    def rollout_trajectory(self, control):
+        trajectory = []
+        pose = np.array([0.0, 0.0, 0.0])
+        for _ in range(self.horizon):
+            pose = self.forward_kinematics(control, pose, self.ts)
+            trajectory.append(pose.tolist())
+        return trajectory
 
     @staticmethod
     def generate_controls(last_control):
