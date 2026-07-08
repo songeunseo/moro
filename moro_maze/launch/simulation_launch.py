@@ -6,7 +6,6 @@ from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, AppendEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
 
 def generate_launch_description():
     moro_maze_dir = get_package_share_directory('moro_maze')
@@ -90,31 +89,8 @@ def generate_launch_description():
                         'use_sim_time': use_sim_time,
                         'rviz_config': rviz_config_file}.items())
 
-    global_planner_cmd = Node(
-        package='moro_maze',
-        executable='global_planner',
-        name='global_planner',
-        output='screen',
-        parameters=[{
-            'use_sim_time': use_sim_time,
-            'goal_x': 3.0,
-            'goal_y': 3.0,
-        }]
-    )
-
-    local_control_cmd = Node(
-        package='moro_maze',
-        executable='local_control',
-        name='local_controller',
-        output='screen',
-        parameters=[{
-            'use_sim_time': use_sim_time,
-            'cmd_vel_stamped': True,
-        }]
-    )
-
     return LaunchDescription([
         gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
         spawn_turtlebot_cmd, robot_state_publisher_cmd, set_env_vars_resources,
-        nav2_bringup_cmd, global_planner_cmd, local_control_cmd, rviz_cmd
+        nav2_bringup_cmd, rviz_cmd
     ])

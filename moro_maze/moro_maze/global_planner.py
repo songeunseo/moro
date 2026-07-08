@@ -26,6 +26,9 @@ class GlobalPlanner(Node):
         self.declare_parameter('publish_period', 2.0)
         self.declare_parameter('goal_x', float('nan'))
         self.declare_parameter('goal_y', float('nan'))
+        self.declare_parameter('exit_row', 22)
+        self.declare_parameter('exit_col', 22)
+        self.declare_parameter('final_yaw', 0.0)
         self.declare_parameter('occupied_threshold', 50)
         self.declare_parameter('allow_unknown', False)
         self.declare_parameter('obstacle_padding_cells', 0)
@@ -40,6 +43,9 @@ class GlobalPlanner(Node):
             self.get_parameter('obstacle_padding_cells').value)
         self.use_diagonal_motion = bool(
             self.get_parameter('use_diagonal_motion').value)
+        self.exit_row = int(self.get_parameter('exit_row').value)
+        self.exit_col = int(self.get_parameter('exit_col').value)
+        self.final_yaw = float(self.get_parameter('final_yaw').value)
 
         self.map_msg = None
         self.map_future = None
@@ -155,22 +161,13 @@ class GlobalPlanner(Node):
         goal_y = float(self.get_parameter('goal_y').value)
         if math.isfinite(goal_x) and math.isfinite(goal_y):
             return self.nearest_free_cell(goal_x, goal_y)
-        return self.farthest_boundary_cell(start)
-
-    def farthest_boundary_cell(self, start):
-        if start is None:
-            return None
-        cells = []
         rows, cols = self.free_grid.shape
-        for row in range(rows):
-            for col in range(cols):
-                if not self.free_grid[row, col]:
-                    continue
-                if row in (0, rows - 1) or col in (0, cols - 1):
-                    cells.append((row, col))
-        if not cells:
-            return None
-        return max(cells, key=lambda c: (c[0] - start[0]) ** 2 + (c[1] - start[1]) ** 2)
+        if (0 <= self.exit_row < rows and 0 <= self.exit_col < cols
+                and self.free_grid[self.exit_row, self.exit_col]):
+            return (self.exit_row, self.exit_col)
+
+        x, y = self.map_to_world(self.exit_row, self.exit_col)
+        return self.nearest_free_cell(x, y)
 
     def nearest_free_cell(self, x, y):
         row, col = self.world_to_map(x, y)
@@ -233,13 +230,11 @@ class GlobalPlanner(Node):
         points = [self.map_to_world(row, col) for row, col in path_cells]
         poses = []
         for idx, (x, y) in enumerate(points):
-            if idx < len(points) - 1:
+            if idx == len(points) - 1:
+                theta = self.final_yaw
+            else:
                 next_x, next_y = points[idx + 1]
                 theta = math.atan2(next_y - y, next_x - x)
-            elif poses:
-                theta = poses[-1][2]
-            else:
-                theta = 0.0
             poses.append((x, y, theta))
         return poses
 
