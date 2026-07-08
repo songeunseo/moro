@@ -29,6 +29,8 @@ class GlobalPlanner(Node):
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
         self.declare_parameter('publish_period', 2.0)
+        self.declare_parameter('start_x', float('nan'))
+        self.declare_parameter('start_y', float('nan'))
         self.declare_parameter('goal_x', float('nan'))
         self.declare_parameter('goal_y', float('nan'))
         self.declare_parameter('exit_row', 22)
@@ -96,15 +98,7 @@ class GlobalPlanner(Node):
             self.free_grid = self.build_free_grid(self.map_msg)
             self.graph_nodes, self.graph = self.create_sparse_graph()
 
-        try:
-            robot_pose = self.localise_robot()
-        except RuntimeError as exc:
-            self.get_logger().warn(str(exc))
-            if self.last_path is not None:
-                self.publish_path(self.last_path)
-            return
-
-        start = self.nearest_graph_node(robot_pose[0], robot_pose[1])
+        start = self.resolve_start()
         goal = self.resolve_goal()
         if start is None or goal is None:
             self.get_logger().error('Could not resolve start or goal cell.')
@@ -166,6 +160,9 @@ class GlobalPlanner(Node):
         free_thresh = float(config.get('free_thresh', 0.196))
 
         pixels, width, height = self.read_pgm(image_path)
+        # PGM rows are stored top-to-bottom, while OccupancyGrid data starts at
+        # the map origin in the lower-left corner.
+        pixels = np.flipud(pixels)
         if negate:
             occ = pixels.astype(np.float32) / 255.0
         else:
@@ -331,6 +328,20 @@ class GlobalPlanner(Node):
 
         x, y = self.map_to_world(self.exit_row, self.exit_col)
         return self.nearest_graph_node(x, y)
+
+    def resolve_start(self):
+        start_x = float(self.get_parameter('start_x').value)
+        start_y = float(self.get_parameter('start_y').value)
+        if math.isfinite(start_x) and math.isfinite(start_y):
+            return self.nearest_graph_node(start_x, start_y)
+
+        try:
+            robot_pose = self.localise_robot()
+        except RuntimeError as exc:
+            self.get_logger().warn(str(exc))
+            return None
+
+        return self.nearest_graph_node(robot_pose[0], robot_pose[1])
 
     def nearest_graph_node(self, x, y):
         best = None
