@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import rclpy
 import tf2_ros
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
 from nav_msgs.msg import Path
 from rclpy.duration import Duration
 from rclpy.node import Node
@@ -45,14 +45,16 @@ class LocalController(Node):
 
         # ---- Parameter ----
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
-        self.horizon = 5           # lookahead steps (notebook 최종 루프와 동일)
+        self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.3  # [m]
+        self.declare_parameter('cmd_vel_stamped', False)
+        self.cmd_vel_stamped = bool(self.get_parameter('cmd_vel_stamped').value)
 
         # ---- State ----
         self.global_path = None       # list of [x, y, theta]
         self.current_goal_id = 0
         self.last_control = np.array([0.0, 0.0])
-        self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.03, D=0.8)
+        self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.05, D=0.8)
 
         # ---- TF ----
         self.tf_buffer = tf2_ros.Buffer()
@@ -63,7 +65,8 @@ class LocalController(Node):
             Path, '/global_planner/path', self.path_callback, 10)
 
         # ---- Pub ----
-        self.cmd_pub = self.create_publisher(TwistStamped, '/cmd_vel', 10)
+        cmd_type = TwistStamped if self.cmd_vel_stamped else Twist
+        self.cmd_pub = self.create_publisher(cmd_type, '/cmd_vel', 10)
         self.trajectory_pub = self.create_publisher(Path, '/local_planner/trajectory', 10)
         self.goal_pub = self.create_publisher(PoseStamped, '/local_planner/goal', 10)
 
@@ -121,6 +124,7 @@ class LocalController(Node):
         # 6. 최적 제어 선택
         idx = np.argmin(costs)
         self.last_control = controls[idx]
+        self.robot_model_pt2.update(self.last_control[0])
 
         # 7. 퍼블리시
         self.pub_cmd(controls[idx])
@@ -177,11 +181,20 @@ class LocalController(Node):
 
     @staticmethod
     def generate_controls(last_control):
+        last_control = np.array(last_control)
         v_min, v_max, v_step = -0.08, 0.12, 0.02
-        vt = np.arange(v_min, v_max + v_step / 2, v_step)
+        v_delta = 0.06
+        vt = np.arange(
+            max(v_min, last_control[0] - v_delta),
+            min(v_max, last_control[0] + v_delta) + v_step / 2,
+            v_step)
 
         w_min, w_max, w_step = -1.4, 1.4, 0.05
-        wt = np.arange(w_min, w_max + w_step / 2, w_step)
+        w_delta = 0.7
+        wt = np.arange(
+            max(w_min, last_control[1] - w_delta),
+            min(w_max, last_control[1] + w_delta) + w_step / 2,
+            w_step)
 
         return np.array([[v, w] for w in wt for v in vt])
 
@@ -208,8 +221,8 @@ class LocalController(Node):
     @staticmethod
     def cost_fn(pose, goalpose, control):
         e = np.abs(pose - goalpose)
-        if e[2] > np.pi:
-            e[2] = 2 * np.pi - e[2]
+        e[2] = abs(np.arctan2(np.sin(pose[2] - goalpose[2]),
+                              np.cos(pose[2] - goalpose[2])))
 
         u = np.abs(control)
 
@@ -247,11 +260,16 @@ class LocalController(Node):
     # Publisher
     # -------------------------------------------------
     def pub_cmd(self, control):
-        msg = TwistStamped()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'base_link'
-        msg.twist.linear.x = float(control[0])
-        msg.twist.angular.z = float(control[1])
+        if self.cmd_vel_stamped:
+            msg = TwistStamped()
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.frame_id = 'base_link'
+            msg.twist.linear.x = float(control[0])
+            msg.twist.angular.z = float(control[1])
+        else:
+            msg = Twist()
+            msg.linear.x = float(control[0])
+            msg.angular.z = float(control[1])
         self.cmd_pub.publish(msg)
 
     def pub_trajectory(self, trajectory):

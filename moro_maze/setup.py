@@ -27,6 +27,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'global_planner = moro_maze.global_planner:main',
             'local_control = moro_maze.local_control:main'
         ],
     },
