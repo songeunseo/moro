@@ -47,8 +47,14 @@ class LocalController(Node):
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
         self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.3  # [m]
-        self.declare_parameter('cmd_vel_stamped', True)
+        self.declare_parameter('cmd_vel_stamped', False)
+        self.declare_parameter('pose_frame', 'map')
+        self.declare_parameter('odom_frame', 'odom')
+        self.declare_parameter('base_frame', 'base_link')
         self.cmd_vel_stamped = bool(self.get_parameter('cmd_vel_stamped').value)
+        self.pose_frame = str(self.get_parameter('pose_frame').value)
+        self.odom_frame = str(self.get_parameter('odom_frame').value)
+        self.base_frame = str(self.get_parameter('base_frame').value)
 
         # ---- State ----
         self.global_path = None       # list of [x, y, theta]
@@ -152,13 +158,18 @@ class LocalController(Node):
     # 핵심 알고리즘 (notebook 함수 그대로 이식)
     # -------------------------------------------------
     def localise_robot(self) -> np.ndarray:
-        try:
-            trans = self.tf_buffer.lookup_transform(
-                'map', 'base_link', Time(), timeout=Duration(seconds=0.2))
-        except (tf2_ros.LookupException,
-                tf2_ros.ConnectivityException,
-                tf2_ros.ExtrapolationException) as e:
-            raise RuntimeError(f'TF lookup failed: {e}')
+        errors = []
+        for frame in (self.pose_frame, self.odom_frame):
+            try:
+                trans = self.tf_buffer.lookup_transform(
+                    frame, self.base_frame, Time(), timeout=Duration(seconds=0.2))
+                break
+            except (tf2_ros.LookupException,
+                    tf2_ros.ConnectivityException,
+                    tf2_ros.ExtrapolationException) as e:
+                errors.append(f'{frame}->{self.base_frame}: {e}')
+        else:
+            raise RuntimeError(f'TF lookup failed: {"; ".join(errors)}')
 
         theta = R.from_quat([
             trans.transform.rotation.x,
@@ -286,9 +297,10 @@ class LocalController(Node):
         msg.header.frame_id = 'base_link'
         for pose in trajectory:
             p = PoseStamped()
-            p.header.frame_id = 'base_link'
+            p.header = msg.header
             p.pose.position.x = float(pose[0])
             p.pose.position.y = float(pose[1])
+            p.pose.orientation.w = 1.0
             msg.poses.append(p)
         self.trajectory_pub.publish(msg)
 
@@ -298,6 +310,7 @@ class LocalController(Node):
         msg.header.frame_id = 'base_link'
         msg.pose.position.x = float(goalpose[0])
         msg.pose.position.y = float(goalpose[1])
+        msg.pose.orientation.w = 1.0
         self.goal_pub.publish(msg)
 
 

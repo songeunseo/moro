@@ -22,6 +22,7 @@ class GlobalPlanner(Node):
         self.declare_parameter('map_service', '/map_server/map')
         self.declare_parameter('path_topic', '/global_planner/path')
         self.declare_parameter('frame_id', 'map')
+        self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
         self.declare_parameter('publish_period', 2.0)
         self.declare_parameter('goal_x', float('nan'))
@@ -36,6 +37,7 @@ class GlobalPlanner(Node):
         self.declare_parameter('obstacle_padding_cells', 0)
 
         self.frame_id = self.get_parameter('frame_id').value
+        self.odom_frame = self.get_parameter('odom_frame').value
         self.base_frame = self.get_parameter('base_frame').value
         self.map_service = self.get_parameter('map_service').value
         self.occupied_threshold = int(self.get_parameter('occupied_threshold').value)
@@ -126,14 +128,19 @@ class GlobalPlanner(Node):
         return self.map_future.result().map
 
     def localise_robot(self):
-        try:
-            trans = self.tf_buffer.lookup_transform(
-                self.frame_id, self.base_frame, Time(),
-                timeout=Duration(seconds=0.2))
-        except (tf2_ros.LookupException,
-                tf2_ros.ConnectivityException,
-                tf2_ros.ExtrapolationException) as exc:
-            raise RuntimeError(f'TF lookup failed: {exc}') from exc
+        errors = []
+        for frame in (self.frame_id, self.odom_frame):
+            try:
+                trans = self.tf_buffer.lookup_transform(
+                    frame, self.base_frame, Time(),
+                    timeout=Duration(seconds=0.2))
+                break
+            except (tf2_ros.LookupException,
+                    tf2_ros.ConnectivityException,
+                    tf2_ros.ExtrapolationException) as exc:
+                errors.append(f'{frame}->{self.base_frame}: {exc}')
+        else:
+            raise RuntimeError(f'TF lookup failed: {"; ".join(errors)}')
 
         theta = R.from_quat([
             trans.transform.rotation.x,
