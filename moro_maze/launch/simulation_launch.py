@@ -42,8 +42,8 @@ def generate_launch_description():
 
     ## SPAWN ROBOT
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
-    x_pose = LaunchConfiguration('x_pose', default='2.0')
-    y_pose = LaunchConfiguration('y_pose', default='1.0')
+    x_pose = LaunchConfiguration('x_pose', default='0.0')
+    y_pose = LaunchConfiguration('y_pose', default='0.0')
 
     launch_file_dir = os.path.join(get_package_share_directory('turtlebot3_gazebo'), 'launch')
 
@@ -87,6 +87,8 @@ def generate_launch_description():
         parameters=[{
             'use_sim_time': use_sim_time,
             'map_yaml': map_yaml_path,
+            'start_row': 4,
+            'start_col': 4,
         }]
     )
 

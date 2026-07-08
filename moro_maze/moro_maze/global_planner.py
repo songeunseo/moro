@@ -29,6 +29,8 @@ class GlobalPlanner(Node):
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
         self.declare_parameter('publish_period', 2.0)
+        self.declare_parameter('start_row', 4)
+        self.declare_parameter('start_col', 4)
         self.declare_parameter('start_x', float('nan'))
         self.declare_parameter('start_y', float('nan'))
         self.declare_parameter('goal_x', float('nan'))
@@ -335,6 +337,11 @@ class GlobalPlanner(Node):
         return self.nearest_graph_node(x, y)
 
     def resolve_start(self):
+        start_row = int(self.get_parameter('start_row').value)
+        start_col = int(self.get_parameter('start_col').value)
+        if (start_row, start_col) in self.graph:
+            return (start_row, start_col)
+
         start_x = float(self.get_parameter('start_x').value)
         start_y = float(self.get_parameter('start_y').value)
         if math.isfinite(start_x) and math.isfinite(start_y):
