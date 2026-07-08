@@ -10,6 +10,7 @@ from nav_msgs.msg import OccupancyGrid, Path
 from nav_msgs.srv import GetMap
 from rclpy.duration import Duration
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.time import Time
 from scipy.spatial.transform import Rotation as R
 
@@ -67,8 +68,12 @@ class GlobalPlanner(Node):
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
         self.path_pub = self.create_publisher(
             Path, self.get_parameter('path_topic').value, 10)
+        map_qos = QoSProfile(
+            depth=1,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            reliability=ReliabilityPolicy.RELIABLE)
         self.map_pub = self.create_publisher(
-            OccupancyGrid, self.get_parameter('map_topic').value, 10)
+            OccupancyGrid, self.get_parameter('map_topic').value, map_qos)
         self.map_client = self.create_client(GetMap, self.map_service)
 
         period = float(self.get_parameter('publish_period').value)
