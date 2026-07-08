@@ -47,7 +47,7 @@ class LocalController(Node):
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
         self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.3  # [m]
-        self.declare_parameter('cmd_vel_stamped', False)
+        self.declare_parameter('cmd_vel_stamped', True)
         self.cmd_vel_stamped = bool(self.get_parameter('cmd_vel_stamped').value)
 
         # ---- State ----
