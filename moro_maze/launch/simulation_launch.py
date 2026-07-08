@@ -64,6 +64,13 @@ def generate_launch_description():
         }.items()
     )
 
+    map_to_odom_tf_cmd = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='map_to_odom_tf',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
+
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(nav2_launch_dir, 'rviz_launch.py')),
@@ -96,6 +103,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         set_env_vars_resources, gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
-        spawn_turtlebot_cmd, robot_state_publisher_cmd,
+        spawn_turtlebot_cmd, robot_state_publisher_cmd, map_to_odom_tf_cmd,
         global_planner_cmd, local_control_cmd, rviz_cmd
     ])
