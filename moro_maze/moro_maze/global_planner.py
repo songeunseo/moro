@@ -114,8 +114,12 @@ class GlobalPlanner(Node):
         path_poses = self.cells_to_poses(dense_path_cells)
         self.last_path = path_poses
         self.publish_path(path_poses)
+        start_x, start_y = self.map_to_world(*start)
+        goal_x, goal_y = self.map_to_world(*goal)
         self.get_logger().info(
-            f'Published global path with {len(path_poses)} poses: {start} -> {goal}')
+            f'Published global path with {len(path_poses)} poses: '
+            f'{start} ({start_x:.2f}, {start_y:.2f}) -> '
+            f'{goal} ({goal_x:.2f}, {goal_y:.2f})')
 
     def request_map(self):
         if self.map_future is None:
