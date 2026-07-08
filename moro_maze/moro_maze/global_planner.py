@@ -1,5 +1,6 @@
 from collections import deque
 import math
+import os
 
 import numpy as np
 import rclpy
@@ -20,6 +21,8 @@ class GlobalPlanner(Node):
         super().__init__('global_planner')
 
         self.declare_parameter('map_service', '/map_server/map')
+        self.declare_parameter('map_yaml', '')
+        self.declare_parameter('map_topic', '/map')
         self.declare_parameter('path_topic', '/global_planner/path')
         self.declare_parameter('frame_id', 'map')
         self.declare_parameter('odom_frame', 'odom')
@@ -40,6 +43,7 @@ class GlobalPlanner(Node):
         self.odom_frame = self.get_parameter('odom_frame').value
         self.base_frame = self.get_parameter('base_frame').value
         self.map_service = self.get_parameter('map_service').value
+        self.map_yaml = self.get_parameter('map_yaml').value
         self.occupied_threshold = int(self.get_parameter('occupied_threshold').value)
         self.allow_unknown = bool(self.get_parameter('allow_unknown').value)
         self.obstacle_padding_cells = int(
@@ -63,6 +67,8 @@ class GlobalPlanner(Node):
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
         self.path_pub = self.create_publisher(
             Path, self.get_parameter('path_topic').value, 10)
+        self.map_pub = self.create_publisher(
+            OccupancyGrid, self.get_parameter('map_topic').value, 10)
         self.map_client = self.create_client(GetMap, self.map_service)
 
         period = float(self.get_parameter('publish_period').value)
@@ -70,6 +76,9 @@ class GlobalPlanner(Node):
         self.get_logger().info('GlobalPlanner node started.')
 
     def plan_and_publish(self):
+        if self.map_msg is not None:
+            self.publish_map()
+
         if self.last_path is not None:
             self.publish_path(self.last_path)
             return
@@ -78,6 +87,7 @@ class GlobalPlanner(Node):
             self.map_msg = self.request_map()
             if self.map_msg is None:
                 return
+            self.publish_map()
             self.free_grid = self.build_free_grid(self.map_msg)
             self.graph_nodes, self.graph = self.create_sparse_graph()
 
@@ -110,6 +120,11 @@ class GlobalPlanner(Node):
     def request_map(self):
         if self.map_future is None:
             if not self.map_client.wait_for_service(timeout_sec=0.1):
+                if self.map_yaml:
+                    self.get_logger().warn(
+                        f'Map service {self.map_service} not available yet. '
+                        f'Loading static map from {self.map_yaml}.')
+                    return self.load_map_from_yaml(self.map_yaml)
                 self.get_logger().warn(
                     f'Map service {self.map_service} not available yet.')
                 return None
@@ -126,6 +141,85 @@ class GlobalPlanner(Node):
             return None
 
         return self.map_future.result().map
+
+    def load_map_from_yaml(self, yaml_path):
+        config = self.read_simple_yaml(yaml_path)
+        image_path = config.get('image')
+        if not image_path:
+            self.get_logger().error(f'Map yaml {yaml_path} has no image entry.')
+            return None
+        if not os.path.isabs(image_path):
+            image_path = os.path.join(os.path.dirname(yaml_path), image_path)
+
+        resolution = float(config.get('resolution', 1.0))
+        origin = [
+            float(v) for v in config.get('origin', '0, 0, 0')
+            .strip('[]')
+            .split(',')]
+        negate = int(config.get('negate', 0))
+        occupied_thresh = float(config.get('occupied_thresh', 0.65))
+        free_thresh = float(config.get('free_thresh', 0.196))
+
+        pixels, width, height = self.read_pgm(image_path)
+        if negate:
+            occ = pixels.astype(np.float32) / 255.0
+        else:
+            occ = (255.0 - pixels.astype(np.float32)) / 255.0
+
+        data = np.full((height, width), -1, dtype=np.int8)
+        data[occ > occupied_thresh] = 100
+        data[occ < free_thresh] = 0
+
+        msg = OccupancyGrid()
+        msg.header.frame_id = self.frame_id
+        msg.info.resolution = resolution
+        msg.info.width = width
+        msg.info.height = height
+        msg.info.origin.position.x = origin[0]
+        msg.info.origin.position.y = origin[1]
+        msg.info.origin.orientation.w = 1.0
+        msg.data = data.reshape(-1).astype(int).tolist()
+        self.get_logger().info(
+            f'Loaded static map from {image_path}: {width}x{height}, res={resolution}.')
+        return msg
+
+    @staticmethod
+    def read_simple_yaml(path):
+        config = {}
+        with open(path, 'r', encoding='utf-8') as file:
+            for line in file:
+                line = line.split('#', 1)[0].strip()
+                if not line or ':' not in line:
+                    continue
+                key, value = line.split(':', 1)
+                config[key.strip()] = value.strip()
+        return config
+
+    @staticmethod
+    def read_pgm(path):
+        with open(path, 'rb') as file:
+            magic = file.readline().strip()
+            if magic != b'P5':
+                raise ValueError(f'Unsupported PGM format in {path}: {magic!r}')
+
+            line = file.readline()
+            while line.startswith(b'#'):
+                line = file.readline()
+            width, height = [int(v) for v in line.split()]
+
+            line = file.readline()
+            while line.startswith(b'#'):
+                line = file.readline()
+            max_value = int(line)
+            if max_value != 255:
+                raise ValueError(f'Unsupported PGM max value in {path}: {max_value}')
+
+            pixels = np.frombuffer(file.read(), dtype=np.uint8)
+        return pixels.reshape((height, width)), width, height
+
+    def publish_map(self):
+        self.map_msg.header.stamp = self.get_clock().now().to_msg()
+        self.map_pub.publish(self.map_msg)
 
     def localise_robot(self):
         errors = []

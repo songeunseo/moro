@@ -13,22 +13,18 @@ def generate_launch_description():
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     nav2_launch_dir = os.path.join(nav2_bringup_dir, 'launch')
     ros_gz_sim_dir = get_package_share_directory('ros_gz_sim')
-    tb_nav2_bringup_dir = get_package_share_directory('turtlebot3_navigation2')
     
     ## FIND CONFIG FILES
     world_path = os.path.join(moro_maze_dir, 'worlds', 'default_gzsim.world')
     map_yaml_path = os.path.join(moro_maze_dir, 'maps', 'map.yaml')
     rviz_config_file = os.path.join(moro_maze_dir, 'rviz', 'config.rviz')
 
-    params_file_path = os.path.join(tb_nav2_bringup_dir, 'param', 'burger.yaml')
-    #params_file_path = os.path.join(moro_maze_dir, 'params', 'nav2_params.yaml') ## Humble params -> Cause tf error on Jazzy
-    
     ## GAZEBO
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(ros_gz_sim_dir, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': ['-r -s -v2 ', world_path], 'on_exit_shutdown': 'true'}.items()
+        launch_arguments={'gz_args': f'-r -s -v2 {world_path}', 'on_exit_shutdown': 'true'}.items()
     )
 
     gzclient_cmd = IncludeLaunchDescription(
@@ -68,19 +64,6 @@ def generate_launch_description():
         }.items()
     )
 
-    ## NAV 2 localization only
-    nav2_localization_cmd = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-        os.path.join(nav2_launch_dir, 'localization_launch.py')),
-    launch_arguments={'namespace': "",
-                      'use_namespace': "False",
-                      'map': map_yaml_path,
-                      'use_sim_time': use_sim_time,
-                      'params_file': params_file_path,
-                      'autostart': "True",
-                      'use_composition': "True",
-                      'use_respawn': "False"}.items())
-
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(nav2_launch_dir, 'rviz_launch.py')),
@@ -96,6 +79,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'use_sim_time': use_sim_time,
+            'map_yaml': map_yaml_path,
         }]
     )
 
@@ -111,7 +95,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
-        spawn_turtlebot_cmd, robot_state_publisher_cmd, set_env_vars_resources,
-        nav2_localization_cmd, global_planner_cmd, local_control_cmd, rviz_cmd
+        set_env_vars_resources, gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
+        spawn_turtlebot_cmd, robot_state_publisher_cmd,
+        global_planner_cmd, local_control_cmd, rviz_cmd
     ])
