@@ -87,8 +87,8 @@ def generate_launch_description():
         parameters=[{
             'use_sim_time': use_sim_time,
             'map_yaml': map_yaml_path,
-            'start_x': x_pose,
-            'start_y': y_pose,
+            'start_x': 2.0,
+            'start_y': 1.0,
             'goal_x': 4.0,
             'goal_y': 4.0,
         }]
