@@ -110,7 +110,8 @@ class GlobalPlanner(Node):
                 f'No path found from {start} to {goal}.')
             return
 
-        path_poses = self.cells_to_poses(path_cells)
+        dense_path_cells = self.expand_path_cells(path_cells)
+        path_poses = self.cells_to_poses(dense_path_cells)
         self.last_path = path_poses
         self.publish_path(path_poses)
         self.get_logger().info(
@@ -391,6 +392,26 @@ class GlobalPlanner(Node):
                 theta = math.atan2(next_y - y, next_x - x)
             poses.append((x, y, theta))
         return poses
+
+    @staticmethod
+    def expand_path_cells(path_cells):
+        if not path_cells:
+            return []
+
+        dense = [path_cells[0]]
+        for (row1, col1), (row2, col2) in zip(path_cells, path_cells[1:]):
+            if row1 == row2:
+                step = 1 if col2 > col1 else -1
+                for col in range(col1 + step, col2 + step, step):
+                    dense.append((row1, col))
+            elif col1 == col2:
+                step = 1 if row2 > row1 else -1
+                for row in range(row1 + step, row2 + step, step):
+                    dense.append((row, col1))
+            else:
+                dense.append((row2, col2))
+
+        return dense
 
     def publish_path(self, path_poses):
         msg = Path()
