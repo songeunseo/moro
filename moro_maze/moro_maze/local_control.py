@@ -48,10 +48,12 @@ class LocalController(Node):
         self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.3  # [m]
         self.declare_parameter('cmd_vel_stamped', False)
+        self.declare_parameter('cmd_vel_topic', '/cmd_vel')
         self.declare_parameter('pose_frame', 'map')
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
         self.cmd_vel_stamped = bool(self.get_parameter('cmd_vel_stamped').value)
+        self.cmd_vel_topic = str(self.get_parameter('cmd_vel_topic').value)
         self.pose_frame = str(self.get_parameter('pose_frame').value)
         self.odom_frame = str(self.get_parameter('odom_frame').value)
         self.base_frame = str(self.get_parameter('base_frame').value)
@@ -71,15 +73,16 @@ class LocalController(Node):
             Path, '/global_planner/path', self.path_callback, 10)
 
         # ---- Pub ----
-        cmd_type = TwistStamped if self.cmd_vel_stamped else Twist
-        self.cmd_pub = self.create_publisher(cmd_type, '/cmd_vel', 10)
+        self.cmd_pub = self.create_publisher(Twist, self.cmd_vel_topic, 10)
+        self.cmd_stamped_pub = self.create_publisher(TwistStamped, self.cmd_vel_topic, 10)
         self.trajectory_pub = self.create_publisher(Path, '/local_planner/trajectory', 10)
         self.goal_pub = self.create_publisher(PoseStamped, '/local_planner/goal', 10)
 
         # ---- Timer (control loop) ----
         self.timer = self.create_timer(self.ts, self.control_loop)
 
-        self.get_logger().info('LocalController node started.')
+        self.get_logger().info(
+            f'LocalController node started. Publishing Twist and TwistStamped on {self.cmd_vel_topic}.')
 
     # -------------------------------------------------
     # callback
@@ -139,14 +142,18 @@ class LocalController(Node):
         idx = np.argmin(costs)
         self.last_control = controls[idx]
         self.robot_model_pt2.update(self.last_control[0])
+        dist = float(np.hypot(goalpose[0], goalpose[1]))
 
         # 7. 퍼블리시
         self.pub_cmd(controls[idx])
+        self.get_logger().info(
+            f'cmd v={controls[idx][0]:.3f}, w={controls[idx][1]:.3f}, '
+            f'goal_dist={dist:.3f}, waypoint={self.current_goal_id}/{len(self.global_path)}',
+            throttle_duration_sec=1.0)
         self.pub_trajectory(trajectories[idx])
         self.pub_goal(goalpose)
 
         # 8. 목표 도달 판정 -> 다음 waypoint로
-        dist = float(np.hypot(goalpose[0], goalpose[1]))
         if dist < self.goal_tolerance:
             self.current_goal_id += 1
             self.get_logger().info(f'Reached waypoint {self.current_goal_id - 1}, moving to next.')
@@ -279,17 +286,16 @@ class LocalController(Node):
     # Publisher
     # -------------------------------------------------
     def pub_cmd(self, control):
-        if self.cmd_vel_stamped:
-            msg = TwistStamped()
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.header.frame_id = 'base_link'
-            msg.twist.linear.x = float(control[0])
-            msg.twist.angular.z = float(control[1])
-        else:
-            msg = Twist()
-            msg.linear.x = float(control[0])
-            msg.angular.z = float(control[1])
+        msg = Twist()
+        msg.linear.x = float(control[0])
+        msg.angular.z = float(control[1])
         self.cmd_pub.publish(msg)
+
+        stamped = TwistStamped()
+        stamped.header.stamp = self.get_clock().now().to_msg()
+        stamped.header.frame_id = 'base_link'
+        stamped.twist = msg
+        self.cmd_stamped_pub.publish(stamped)
 
     def pub_trajectory(self, trajectory):
         msg = Path()
