@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import rclpy
 import tf2_ros
-from geometry_msgs.msg import PoseStamped, TwistStamped
+from geometry_msgs.msg import PoseStamped, Twist, TwistStamped
 from nav_msgs.msg import Path
 from rclpy.duration import Duration
 from rclpy.node import Node
@@ -45,14 +45,26 @@ class LocalController(Node):
 
         # ---- Parameter ----
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
-        self.horizon = 5           # lookahead steps (notebook 최종 루프와 동일)
-        self.goal_tolerance = 0.3  # [m]
+        self.horizon = 10          # lookahead steps -> 5 sec lookahead
+        self.goal_tolerance = 0.16  # [m]
+        self.max_v = 0.12
+        self.max_w = 1.0
+        self.declare_parameter('cmd_vel_stamped', True)
+        self.declare_parameter('cmd_vel_topic', '/cmd_vel')
+        self.declare_parameter('pose_frame', 'map')
+        self.declare_parameter('odom_frame', 'odom')
+        self.declare_parameter('base_frame', 'base_link')
+        self.cmd_vel_stamped = bool(self.get_parameter('cmd_vel_stamped').value)
+        self.cmd_vel_topic = str(self.get_parameter('cmd_vel_topic').value)
+        self.pose_frame = str(self.get_parameter('pose_frame').value)
+        self.odom_frame = str(self.get_parameter('odom_frame').value)
+        self.base_frame = str(self.get_parameter('base_frame').value)
 
         # ---- State ----
         self.global_path = None       # list of [x, y, theta]
         self.current_goal_id = 0
         self.last_control = np.array([0.0, 0.0])
-        self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.03, D=0.8)
+        self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.05, D=0.8)
 
         # ---- TF ----
         self.tf_buffer = tf2_ros.Buffer()
@@ -63,14 +75,17 @@ class LocalController(Node):
             Path, '/global_planner/path', self.path_callback, 10)
 
         # ---- Pub ----
-        self.cmd_pub = self.create_publisher(TwistStamped, '/cmd_vel', 10)
+        cmd_type = TwistStamped if self.cmd_vel_stamped else Twist
+        self.cmd_pub = self.create_publisher(cmd_type, self.cmd_vel_topic, 10)
         self.trajectory_pub = self.create_publisher(Path, '/local_planner/trajectory', 10)
         self.goal_pub = self.create_publisher(PoseStamped, '/local_planner/goal', 10)
 
         # ---- Timer (control loop) ----
         self.timer = self.create_timer(self.ts, self.control_loop)
 
-        self.get_logger().info('LocalController node started.')
+        self.get_logger().info(
+            f'LocalController node started. Publishing '
+            f'{"TwistStamped" if self.cmd_vel_stamped else "Twist"} on {self.cmd_vel_topic}.')
 
     # -------------------------------------------------
     # callback
@@ -85,9 +100,17 @@ class LocalController(Node):
             theta = R.from_quat([q.x, q.y, q.z, q.w]).as_euler('xyz')[2]
             path.append([x, y, theta])
 
+        if self.same_path(path):
+            return
+
         self.global_path = path
         self.current_goal_id = 0
         self.get_logger().info(f'Received global path with {len(path)} waypoints.')
+
+    def same_path(self, path):
+        if self.global_path is None or len(path) != len(self.global_path):
+            return False
+        return np.allclose(np.array(path), np.array(self.global_path), atol=1e-3)
 
     def control_loop(self):
         if self.global_path is None:
@@ -112,23 +135,24 @@ class LocalController(Node):
         T_goal = self.pose2tf_mat(goal)
         goalpose = self.tf_mat2pose(np.linalg.inv(T_robot) @ T_goal)
 
-        # 4. 제어 신호 생성
-        controls = self.generate_controls(self.last_control)
+        dist = float(np.hypot(goalpose[0], goalpose[1]))
 
-        # 5. forward simulation으로 각 제어 평가
-        costs, trajectories = self.evaluate_controls(controls, goalpose)
-
-        # 6. 최적 제어 선택
-        idx = np.argmin(costs)
-        self.last_control = controls[idx]
+        # 4. waypoint 추종 제어 생성
+        control = self.track_goal_control(goalpose)
+        self.last_control = control
+        self.robot_model_pt2.update(control[0])
+        trajectory = self.rollout_trajectory(control)
 
         # 7. 퍼블리시
-        self.pub_cmd(controls[idx])
-        self.pub_trajectory(trajectories[idx])
+        self.pub_cmd(control)
+        self.get_logger().info(
+            f'cmd v={control[0]:.3f}, w={control[1]:.3f}, '
+            f'goal_dist={dist:.3f}, waypoint={self.current_goal_id}/{len(self.global_path)}',
+            throttle_duration_sec=1.0)
+        self.pub_trajectory(trajectory)
         self.pub_goal(goalpose)
 
         # 8. 목표 도달 판정 -> 다음 waypoint로
-        dist = float(np.hypot(goalpose[0], goalpose[1]))
         if dist < self.goal_tolerance:
             self.current_goal_id += 1
             self.get_logger().info(f'Reached waypoint {self.current_goal_id - 1}, moving to next.')
@@ -140,13 +164,18 @@ class LocalController(Node):
     # 핵심 알고리즘 (notebook 함수 그대로 이식)
     # -------------------------------------------------
     def localise_robot(self) -> np.ndarray:
-        try:
-            trans = self.tf_buffer.lookup_transform(
-                'map', 'base_link', Time(), timeout=Duration(seconds=0.2))
-        except (tf2_ros.LookupException,
-                tf2_ros.ConnectivityException,
-                tf2_ros.ExtrapolationException) as e:
-            raise RuntimeError(f'TF lookup failed: {e}')
+        errors = []
+        for frame in (self.pose_frame, self.odom_frame):
+            try:
+                trans = self.tf_buffer.lookup_transform(
+                    frame, self.base_frame, Time(), timeout=Duration(seconds=0.2))
+                break
+            except (tf2_ros.LookupException,
+                    tf2_ros.ConnectivityException,
+                    tf2_ros.ExtrapolationException) as e:
+                errors.append(f'{frame}->{self.base_frame}: {e}')
+        else:
+            raise RuntimeError(f'TF lookup failed: {"; ".join(errors)}')
 
         theta = R.from_quat([
             trans.transform.rotation.x,
@@ -175,13 +204,47 @@ class LocalController(Node):
         theta = np.arctan2(T[1, 0], T[0, 0])
         return np.array([x, y, theta])
 
+    def track_goal_control(self, goalpose):
+        distance = float(np.hypot(goalpose[0], goalpose[1]))
+        heading_error = float(np.arctan2(goalpose[1], goalpose[0]))
+
+        if distance < self.goal_tolerance:
+            return np.array([0.0, 0.0])
+
+        w = float(np.clip(1.8 * heading_error, -self.max_w, self.max_w))
+
+        if abs(heading_error) > 0.75:
+            v = 0.0
+        else:
+            v = min(self.max_v, max(0.04, 0.35 * distance))
+            v *= max(0.25, np.cos(heading_error))
+
+        return np.array([float(v), w])
+
+    def rollout_trajectory(self, control):
+        trajectory = []
+        pose = np.array([0.0, 0.0, 0.0])
+        for _ in range(self.horizon):
+            pose = self.forward_kinematics(control, pose, self.ts)
+            trajectory.append(pose.tolist())
+        return trajectory
+
     @staticmethod
     def generate_controls(last_control):
+        last_control = np.array(last_control)
         v_min, v_max, v_step = -0.08, 0.12, 0.02
-        vt = np.arange(v_min, v_max + v_step / 2, v_step)
+        v_delta = 0.06
+        vt = np.arange(
+            max(v_min, last_control[0] - v_delta),
+            min(v_max, last_control[0] + v_delta) + v_step / 2,
+            v_step)
 
         w_min, w_max, w_step = -1.4, 1.4, 0.05
-        wt = np.arange(w_min, w_max + w_step / 2, w_step)
+        w_delta = 0.7
+        wt = np.arange(
+            max(w_min, last_control[1] - w_delta),
+            min(w_max, last_control[1] + w_delta) + w_step / 2,
+            w_step)
 
         return np.array([[v, w] for w in wt for v in vt])
 
@@ -208,8 +271,8 @@ class LocalController(Node):
     @staticmethod
     def cost_fn(pose, goalpose, control):
         e = np.abs(pose - goalpose)
-        if e[2] > np.pi:
-            e[2] = 2 * np.pi - e[2]
+        e[2] = abs(np.arctan2(np.sin(pose[2] - goalpose[2]),
+                              np.cos(pose[2] - goalpose[2])))
 
         u = np.abs(control)
 
@@ -247,11 +310,16 @@ class LocalController(Node):
     # Publisher
     # -------------------------------------------------
     def pub_cmd(self, control):
-        msg = TwistStamped()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = 'base_link'
-        msg.twist.linear.x = float(control[0])
-        msg.twist.angular.z = float(control[1])
+        if self.cmd_vel_stamped:
+            msg = TwistStamped()
+            msg.header.stamp = self.get_clock().now().to_msg()
+            msg.header.frame_id = 'base_link'
+            msg.twist.linear.x = float(control[0])
+            msg.twist.angular.z = float(control[1])
+        else:
+            msg = Twist()
+            msg.linear.x = float(control[0])
+            msg.angular.z = float(control[1])
         self.cmd_pub.publish(msg)
 
     def pub_trajectory(self, trajectory):
@@ -260,9 +328,10 @@ class LocalController(Node):
         msg.header.frame_id = 'base_link'
         for pose in trajectory:
             p = PoseStamped()
-            p.header.frame_id = 'base_link'
+            p.header = msg.header
             p.pose.position.x = float(pose[0])
             p.pose.position.y = float(pose[1])
+            p.pose.orientation.w = 1.0
             msg.poses.append(p)
         self.trajectory_pub.publish(msg)
 
@@ -272,6 +341,7 @@ class LocalController(Node):
         msg.header.frame_id = 'base_link'
         msg.pose.position.x = float(goalpose[0])
         msg.pose.position.y = float(goalpose[1])
+        msg.pose.orientation.w = 1.0
         self.goal_pub.publish(msg)
 
 

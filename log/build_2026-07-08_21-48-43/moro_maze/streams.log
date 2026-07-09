@@ -1,0 +1,25 @@
+[1.755s] Invoking command in '/opt/ros2_ws/src/moro/moro_maze': PS1=(myenv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/opt/ros2_ws/src/moro/build/moro_maze/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(myenv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/moro_maze build --build-base /opt/ros2_ws/src/moro/build/moro_maze/build install --record /opt/ros2_ws/src/moro/build/moro_maze/install.log --single-version-externally-managed install_data
+[2.291s] running egg_info
+[2.316s] writing ../build/moro_maze/moro_maze.egg-info/PKG-INFO
+[2.316s] writing dependency_links to ../build/moro_maze/moro_maze.egg-info/dependency_links.txt
+[2.317s] writing entry points to ../build/moro_maze/moro_maze.egg-info/entry_points.txt
+[2.317s] writing requirements to ../build/moro_maze/moro_maze.egg-info/requires.txt
+[2.317s] writing top-level names to ../build/moro_maze/moro_maze.egg-info/top_level.txt
+[2.367s] reading manifest file '../build/moro_maze/moro_maze.egg-info/SOURCES.txt'
+[2.368s] writing manifest file '../build/moro_maze/moro_maze.egg-info/SOURCES.txt'
+[2.368s] running build
+[2.369s] running build_py
+[2.369s] copying moro_maze/local_control.py -> /opt/ros2_ws/src/moro/build/moro_maze/build/lib/moro_maze
+[2.370s] running install
+[2.382s] running install_lib
+[2.407s] copying /opt/ros2_ws/src/moro/build/moro_maze/build/lib/moro_maze/local_control.py -> /opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro_maze
+[2.408s] byte-compiling /opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro_maze/local_control.py to local_control.cpython-312.pyc
+[2.418s] running install_data
+[2.419s] running install_egg_info
+[2.445s] removing '/opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro_maze-0.0.0-py3.12.egg-info' (and everything under it)
+[2.445s] Copying ../build/moro_maze/moro_maze.egg-info to /opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro_maze-0.0.0-py3.12.egg-info
+[2.447s] running install_scripts
+[2.632s] Installing global_planner script to /opt/ros2_ws/src/moro/install/moro_maze/lib/moro_maze
+[2.632s] Installing local_control script to /opt/ros2_ws/src/moro/install/moro_maze/lib/moro_maze
+[2.632s] writing list of installed files to '/opt/ros2_ws/src/moro/build/moro_maze/install.log'
+[2.668s] Invoked command in '/opt/ros2_ws/src/moro/moro_maze' returned '0': PS1=(myenv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/opt/ros2_ws/src/moro/build/moro_maze/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(myenv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/moro_maze build --build-base /opt/ros2_ws/src/moro/build/moro_maze/build install --record /opt/ros2_ws/src/moro/build/moro_maze/install.log --single-version-externally-managed install_data

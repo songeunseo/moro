@@ -3,31 +3,28 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, AppendEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
 def generate_launch_description():
     moro_maze_dir = get_package_share_directory('moro_maze')
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     nav2_launch_dir = os.path.join(nav2_bringup_dir, 'launch')
     ros_gz_sim_dir = get_package_share_directory('ros_gz_sim')
-    tb_nav2_bringup_dir = get_package_share_directory('turtlebot3_navigation2')
     
     ## FIND CONFIG FILES
     world_path = os.path.join(moro_maze_dir, 'worlds', 'default_gzsim.world')
     map_yaml_path = os.path.join(moro_maze_dir, 'maps', 'map.yaml')
     rviz_config_file = os.path.join(moro_maze_dir, 'rviz', 'config.rviz')
 
-    params_file_path = os.path.join(tb_nav2_bringup_dir, 'param', 'burger.yaml')
-    #params_file_path = os.path.join(moro_maze_dir, 'params', 'nav2_params.yaml') ## Humble params -> Cause tf error on Jazzy
-    
     ## GAZEBO
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(ros_gz_sim_dir, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': ['-r -s -v2 ', world_path], 'on_exit_shutdown': 'true'}.items()
+        launch_arguments={'gz_args': f'-r -s -v2 {world_path}', 'on_exit_shutdown': 'true'}.items()
     )
 
     gzclient_cmd = IncludeLaunchDescription(
@@ -67,19 +64,12 @@ def generate_launch_description():
         }.items()
     )
 
-    ## NAV 2
-    nav2_bringup_cmd = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-        os.path.join(nav2_launch_dir, 'bringup_launch.py')),
-    launch_arguments={'namespace': "",
-                      'use_namespace': "False",
-                      'slam': "False",
-                      'map': map_yaml_path,
-                      'use_sim_time': use_sim_time,
-                      'params_file': params_file_path,
-                      'autostart': "True",
-                      'use_composition': "True",
-                      'use_respawn': "False"}.items())
+    map_to_odom_tf_cmd = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='map_to_odom_tf',
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
 
     rviz_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -89,8 +79,61 @@ def generate_launch_description():
                         'use_sim_time': use_sim_time,
                         'rviz_config': rviz_config_file}.items())
 
+    map_server_cmd = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'yaml_filename': map_yaml_path,
+        }]
+    )
+
+    map_server_lifecycle_cmd = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_map_server',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'autostart': True,
+            'node_names': ['map_server'],
+        }]
+    )
+
+    global_planner_cmd = Node(
+        package='moro_maze',
+        executable='global_planner',
+        name='global_planner',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'map_yaml': map_yaml_path,
+            'start_x': x_pose,
+            'start_y': y_pose,
+            'goal_x': 4.0,
+            'goal_y': 4.0,
+        }]
+    )
+
+    local_control_cmd = Node(
+        package='moro_maze',
+        executable='local_control',
+        name='local_controller',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'cmd_vel_stamped': True,
+        }]
+    )
+
     return LaunchDescription([
-        gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
-        spawn_turtlebot_cmd, robot_state_publisher_cmd, set_env_vars_resources,
-        nav2_bringup_cmd, rviz_cmd
+        DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('x_pose', default_value='2.0'),
+        DeclareLaunchArgument('y_pose', default_value='1.0'),
+        set_env_vars_resources, gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
+        spawn_turtlebot_cmd, robot_state_publisher_cmd, map_to_odom_tf_cmd,
+        map_server_cmd, map_server_lifecycle_cmd,
+        global_planner_cmd, local_control_cmd, rviz_cmd
     ])

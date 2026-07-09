@@ -1,0 +1,50 @@
+running egg_info
+creating build/moro_maze/moro_maze.egg-info
+writing build/moro_maze/moro_maze.egg-info/PKG-INFO
+writing dependency_links to build/moro_maze/moro_maze.egg-info/dependency_links.txt
+writing entry points to build/moro_maze/moro_maze.egg-info/entry_points.txt
+writing requirements to build/moro_maze/moro_maze.egg-info/requires.txt
+writing top-level names to build/moro_maze/moro_maze.egg-info/top_level.txt
+writing manifest file 'build/moro_maze/moro_maze.egg-info/SOURCES.txt'
+reading manifest file 'build/moro_maze/moro_maze.egg-info/SOURCES.txt'
+writing manifest file 'build/moro_maze/moro_maze.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build
+creating /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib
+creating /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze
+copying moro_maze/__init__.py -> /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze
+copying moro_maze/local_control.py -> /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze
+copying moro_maze/global_planner.py -> /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze
+running install
+running install_lib
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze
+copying /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze/__init__.py -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze
+copying /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze/local_control.py -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze
+copying /opt/ros2_ws/src/moro/moro_maze/build/moro_maze/build/lib/moro_maze/global_planner.py -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze
+byte-compiling /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze/__init__.py to __init__.cpython-312.pyc
+byte-compiling /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze/local_control.py to local_control.cpython-312.pyc
+byte-compiling /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze/global_planner.py to global_planner.cpython-312.pyc
+running install_data
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/ament_index
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/ament_index/resource_index
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/ament_index/resource_index/packages
+copying resource/moro_maze -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/ament_index/resource_index/packages
+copying package.xml -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/launch
+copying launch/simulation_launch.py -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/launch
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/maps
+copying maps/map.pgm -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/maps
+copying maps/map.yaml -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/maps
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/worlds
+copying worlds/default_gzsim.world -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/worlds
+copying worlds/default.world -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/worlds
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/params
+copying params/nav2_params.yaml -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/params
+creating /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/rviz
+copying rviz/config.rviz -> /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/share/moro_maze/rviz
+running install_egg_info
+Copying build/moro_maze/moro_maze.egg-info to /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/python3.12/site-packages/moro_maze-0.0.0-py3.12.egg-info
+running install_scripts
+Installing local_control script to /opt/ros2_ws/src/moro/moro_maze/install/moro_maze/lib/moro_maze
+writing list of installed files to '/opt/ros2_ws/src/moro/moro_maze/build/moro_maze/install.log'
