@@ -5,7 +5,7 @@ import os
 import numpy as np
 import rclpy
 import tf2_ros
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 from nav_msgs.msg import OccupancyGrid, Path
 from nav_msgs.srv import GetMap
 from rclpy.duration import Duration
@@ -25,6 +25,7 @@ class GlobalPlanner(Node):
         self.declare_parameter('map_yaml', '')
         self.declare_parameter('map_topic', '/map')
         self.declare_parameter('path_topic', '/global_planner/path')
+        self.declare_parameter('initial_pose_topic', '/initialpose')
         self.declare_parameter('frame_id', 'map')
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
@@ -67,11 +68,17 @@ class GlobalPlanner(Node):
         self.graph = None
         self.graph_nodes = None
         self.last_path = None
+        self.initial_pose = None
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
         self.path_pub = self.create_publisher(
             Path, self.get_parameter('path_topic').value, 10)
+        self.initial_pose_sub = self.create_subscription(
+            PoseWithCovarianceStamped,
+            self.get_parameter('initial_pose_topic').value,
+            self.initial_pose_callback,
+            10)
         map_qos = QoSProfile(
             depth=1,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
@@ -83,6 +90,22 @@ class GlobalPlanner(Node):
         period = float(self.get_parameter('publish_period').value)
         self.timer = self.create_timer(period, self.plan_and_publish)
         self.get_logger().info('GlobalPlanner node started.')
+
+    def initial_pose_callback(self, msg: PoseWithCovarianceStamped):
+        if msg.header.frame_id and msg.header.frame_id != self.frame_id:
+            self.get_logger().warn(
+                f'Ignoring initial pose in frame {msg.header.frame_id}; '
+                f'expected {self.frame_id}.')
+            return
+
+        self.initial_pose = (
+            float(msg.pose.pose.position.x),
+            float(msg.pose.pose.position.y))
+        self.last_path = None
+        self.get_logger().info(
+            f'Received initial pose from RViz: '
+            f'({self.initial_pose[0]:.2f}, {self.initial_pose[1]:.2f}). '
+            'Replanning global path.')
 
     def plan_and_publish(self):
         if self.map_msg is not None:
@@ -337,6 +360,9 @@ class GlobalPlanner(Node):
         return self.nearest_graph_node(x, y)
 
     def resolve_start(self):
+        if self.initial_pose is not None:
+            return self.nearest_graph_node(*self.initial_pose)
+
         start_x = float(self.get_parameter('start_x').value)
         start_y = float(self.get_parameter('start_y').value)
         if math.isfinite(start_x) and math.isfinite(start_y):

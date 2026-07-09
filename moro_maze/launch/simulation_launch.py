@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, AppendEnvironmentVariable
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -79,6 +79,29 @@ def generate_launch_description():
                         'use_sim_time': use_sim_time,
                         'rviz_config': rviz_config_file}.items())
 
+    map_server_cmd = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'yaml_filename': map_yaml_path,
+        }]
+    )
+
+    map_server_lifecycle_cmd = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_map_server',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'autostart': True,
+            'node_names': ['map_server'],
+        }]
+    )
+
     global_planner_cmd = Node(
         package='moro_maze',
         executable='global_planner',
@@ -87,8 +110,8 @@ def generate_launch_description():
         parameters=[{
             'use_sim_time': use_sim_time,
             'map_yaml': map_yaml_path,
-            'start_x': 2.0,
-            'start_y': 1.0,
+            'start_x': x_pose,
+            'start_y': y_pose,
             'goal_x': 4.0,
             'goal_y': 4.0,
         }]
@@ -106,7 +129,11 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument('use_sim_time', default_value='true'),
+        DeclareLaunchArgument('x_pose', default_value='2.0'),
+        DeclareLaunchArgument('y_pose', default_value='1.0'),
         set_env_vars_resources, gzserver_cmd, #gzclient_cmd, # comment out gzclient_cmd to omit the graphical simulation and save performance
         spawn_turtlebot_cmd, robot_state_publisher_cmd, map_to_odom_tf_cmd,
+        map_server_cmd, map_server_lifecycle_cmd,
         global_planner_cmd, local_control_cmd, rviz_cmd
     ])
