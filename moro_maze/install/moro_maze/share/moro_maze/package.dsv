@@ -1,0 +1,6 @@
+source;share/moro_maze/hook/pythonpath.ps1
+source;share/moro_maze/hook/pythonpath.dsv
+source;share/moro_maze/hook/pythonpath.sh
+source;share/moro_maze/hook/ament_prefix_path.ps1
+source;share/moro_maze/hook/ament_prefix_path.dsv
+source;share/moro_maze/hook/ament_prefix_path.sh

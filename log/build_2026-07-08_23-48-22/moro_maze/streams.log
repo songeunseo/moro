@@ -1,0 +1,28 @@
+[6.433s] Invoking command in '/opt/ros2_ws/src/moro/build/moro_maze': PS1=(myenv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/opt/ros2_ws/src/moro/build/moro_maze/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(myenv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /opt/ros2_ws/src/moro/build/moro_maze/build --no-deps symlink_data --force
+[8.446s] running develop
+[9.182s] /usr/lib/python3/dist-packages/setuptools/command/easy_install.py:363: UserWarning: Unbuilt egg for pytest-repeat [unknown version] (/usr/lib/python3/dist-packages)
+[9.183s]   self.local_index = Environment(self.shadow_path + sys.path)
+[9.354s] running egg_info
+[9.468s] writing moro_maze.egg-info/PKG-INFO
+[9.469s] writing dependency_links to moro_maze.egg-info/dependency_links.txt
+[9.470s] writing entry points to moro_maze.egg-info/entry_points.txt
+[9.470s] writing requirements to moro_maze.egg-info/requires.txt
+[9.470s] writing top-level names to moro_maze.egg-info/top_level.txt
+[9.569s] reading manifest file 'moro_maze.egg-info/SOURCES.txt'
+[9.574s] writing manifest file 'moro_maze.egg-info/SOURCES.txt'
+[9.649s] running build_ext
+[9.662s] Creating /opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro-maze.egg-link (link to .)
+[9.662s] Installing local_control script to /opt/ros2_ws/src/moro/install/moro_maze/lib/moro_maze
+[9.665s] 
+[9.665s] Installed /opt/ros2_ws/src/moro/build/moro_maze
+[9.667s] running symlink_data
+[9.667s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/resource/moro_maze -> /opt/ros2_ws/src/moro/install/moro_maze/share/ament_index/resource_index/packages
+[9.667s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/package.xml -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze
+[9.669s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/launch/simulation_launch.py -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/launch
+[9.670s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/maps/map.pgm -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/maps
+[9.671s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/maps/map.yaml -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/maps
+[9.671s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/worlds/default_gzsim.world -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/worlds
+[9.671s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/worlds/default.world -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/worlds
+[9.672s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/params/nav2_params.yaml -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/params
+[9.673s] symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/rviz/config.rviz -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/rviz
+[9.779s] Invoked command in '/opt/ros2_ws/src/moro/build/moro_maze' returned '0': PS1=(myenv) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/opt/ros2_ws/src/moro/build/moro_maze/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages:${PYTHONPATH} VIRTUAL_ENV_PROMPT=(myenv) /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /opt/ros2_ws/src/moro/build/moro_maze/build --no-deps symlink_data --force

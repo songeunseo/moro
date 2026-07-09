@@ -1,0 +1,128 @@
+[0.000000] (-) TimerEvent: {}
+[0.006073] (moro_maze) JobQueued: {'identifier': 'moro_maze', 'dependencies': OrderedDict()}
+[0.009420] (moro_maze) JobStarted: {'identifier': 'moro_maze'}
+[0.099171] (-) TimerEvent: {}
+[0.202917] (-) TimerEvent: {}
+[0.303740] (-) TimerEvent: {}
+[0.412018] (-) TimerEvent: {}
+[0.513609] (-) TimerEvent: {}
+[0.614653] (-) TimerEvent: {}
+[0.719265] (-) TimerEvent: {}
+[0.822128] (-) TimerEvent: {}
+[0.923746] (-) TimerEvent: {}
+[1.025120] (-) TimerEvent: {}
+[1.130944] (-) TimerEvent: {}
+[1.231628] (-) TimerEvent: {}
+[1.334200] (-) TimerEvent: {}
+[1.439125] (-) TimerEvent: {}
+[1.541458] (-) TimerEvent: {}
+[1.650189] (-) TimerEvent: {}
+[1.751254] (-) TimerEvent: {}
+[1.852140] (-) TimerEvent: {}
+[1.954440] (-) TimerEvent: {}
+[2.056070] (-) TimerEvent: {}
+[2.158846] (-) TimerEvent: {}
+[2.259385] (-) TimerEvent: {}
+[2.359964] (-) TimerEvent: {}
+[2.460725] (-) TimerEvent: {}
+[2.569423] (-) TimerEvent: {}
+[2.671305] (-) TimerEvent: {}
+[2.775086] (-) TimerEvent: {}
+[2.879223] (-) TimerEvent: {}
+[2.980136] (-) TimerEvent: {}
+[3.083650] (-) TimerEvent: {}
+[3.193903] (-) TimerEvent: {}
+[3.294730] (-) TimerEvent: {}
+[3.395441] (-) TimerEvent: {}
+[3.496977] (-) TimerEvent: {}
+[3.599395] (-) TimerEvent: {}
+[3.702868] (-) TimerEvent: {}
+[3.810419] (-) TimerEvent: {}
+[3.912896] (-) TimerEvent: {}
+[4.014820] (-) TimerEvent: {}
+[4.119139] (-) TimerEvent: {}
+[4.221609] (-) TimerEvent: {}
+[4.324306] (-) TimerEvent: {}
+[4.429837] (-) TimerEvent: {}
+[4.536128] (-) TimerEvent: {}
+[4.640957] (-) TimerEvent: {}
+[4.741651] (-) TimerEvent: {}
+[4.842982] (-) TimerEvent: {}
+[4.944240] (-) TimerEvent: {}
+[5.047822] (-) TimerEvent: {}
+[5.148935] (-) TimerEvent: {}
+[5.250007] (-) TimerEvent: {}
+[5.357837] (-) TimerEvent: {}
+[5.458632] (-) TimerEvent: {}
+[5.561419] (-) TimerEvent: {}
+[5.662978] (-) TimerEvent: {}
+[5.764120] (-) TimerEvent: {}
+[5.875651] (-) TimerEvent: {}
+[5.976245] (-) TimerEvent: {}
+[6.078082] (-) TimerEvent: {}
+[6.180010] (-) TimerEvent: {}
+[6.283824] (-) TimerEvent: {}
+[6.389178] (-) TimerEvent: {}
+[6.431086] (moro_maze) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/opt/ros2_ws/src/moro/build/moro_maze/build', '--no-deps', 'symlink_data', '--force'], 'cwd': '/opt/ros2_ws/src/moro/build/moro_maze', 'env': {'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'JUPYTER_SERVER_ROOT': '/opt/ros2_ws', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'HOSTNAME': 'ros', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/root', 'OLDPWD': '/opt/ros2_ws/src/moro/moro_maze', 'ROS_PYTHON_VERSION': '3', 'PS1': '(myenv) \\[\\e]0;\\u@\\h: \\w\\a\\]${debian_chroot:+($debian_chroot)}\\[\\033[01;32m\\]\\u@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]\\$', 'COLCON_PREFIX_PATH': '/opt/ros2_ws/install', 'PYXTERM_DIMENSIONS': '80x25', 'ROS_DISTRO': 'jazzy', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'COLUMNS': '147', 'TERM': 'xterm-256color', 'PATH': '/root/myenv/bin:/root/myenv/bin:/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'DISPLAY': ':0', 'LANG': 'en_US.UTF-8', 'VIRTUAL_ENV_PROMPT': '(myenv)', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'AMENT_PREFIX_PATH': '/opt/ros2_ws/install/moro_maze:/opt/ros/jazzy', 'DEBIAN_FRONTEND': 'noninteractive', 'SHELL': '/bin/bash', 'VIRTUAL_ENV': '/root/myenv', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/opt/ros2_ws/src/moro/build/moro_maze', 'TURTLEBOT3_MODEL': 'burger', 'LINES': '40', 'PYTHONPATH': '/opt/ros2_ws/src/moro/build/moro_maze/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages:/opt/ros2_ws/install/moro_maze/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'JUPYTER_SERVER_URL': 'http://ros:8888/', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor', 'ROS2_WS': '/opt/ros2_ws'}, 'shell': False}
+[6.489386] (-) TimerEvent: {}
+[6.593188] (-) TimerEvent: {}
+[6.704207] (-) TimerEvent: {}
+[6.810412] (-) TimerEvent: {}
+[6.912340] (-) TimerEvent: {}
+[7.014126] (-) TimerEvent: {}
+[7.117930] (-) TimerEvent: {}
+[7.222258] (-) TimerEvent: {}
+[7.322935] (-) TimerEvent: {}
+[7.427826] (-) TimerEvent: {}
+[7.528758] (-) TimerEvent: {}
+[7.629274] (-) TimerEvent: {}
+[7.734560] (-) TimerEvent: {}
+[7.837818] (-) TimerEvent: {}
+[7.938334] (-) TimerEvent: {}
+[8.039338] (-) TimerEvent: {}
+[8.140659] (-) TimerEvent: {}
+[8.257415] (-) TimerEvent: {}
+[8.363651] (-) TimerEvent: {}
+[8.454364] (moro_maze) StdoutLine: {'line': b'running develop\n'}
+[8.467566] (-) TimerEvent: {}
+[8.568546] (-) TimerEvent: {}
+[8.670005] (-) TimerEvent: {}
+[8.772222] (-) TimerEvent: {}
+[8.872785] (-) TimerEvent: {}
+[8.973987] (-) TimerEvent: {}
+[9.083475] (-) TimerEvent: {}
+[9.184617] (-) TimerEvent: {}
+[9.190830] (moro_maze) StderrLine: {'line': b'/usr/lib/python3/dist-packages/setuptools/command/easy_install.py:363: UserWarning: Unbuilt egg for pytest-repeat [unknown version] (/usr/lib/python3/dist-packages)\n'}
+[9.192015] (moro_maze) StderrLine: {'line': b'  self.local_index = Environment(self.shadow_path + sys.path)\n'}
+[9.286147] (-) TimerEvent: {}
+[9.363532] (moro_maze) StdoutLine: {'line': b'running egg_info\n'}
+[9.394805] (-) TimerEvent: {}
+[9.476995] (moro_maze) StdoutLine: {'line': b'writing moro_maze.egg-info/PKG-INFO\n'}
+[9.477408] (moro_maze) StdoutLine: {'line': b'writing dependency_links to moro_maze.egg-info/dependency_links.txt\n'}
+[9.478835] (moro_maze) StdoutLine: {'line': b'writing entry points to moro_maze.egg-info/entry_points.txt\n'}
+[9.479005] (moro_maze) StdoutLine: {'line': b'writing requirements to moro_maze.egg-info/requires.txt\n'}
+[9.479144] (moro_maze) StdoutLine: {'line': b'writing top-level names to moro_maze.egg-info/top_level.txt\n'}
+[9.496832] (-) TimerEvent: {}
+[9.578237] (moro_maze) StdoutLine: {'line': b"reading manifest file 'moro_maze.egg-info/SOURCES.txt'\n"}
+[9.583482] (moro_maze) StdoutLine: {'line': b"writing manifest file 'moro_maze.egg-info/SOURCES.txt'\n"}
+[9.598078] (-) TimerEvent: {}
+[9.657806] (moro_maze) StdoutLine: {'line': b'running build_ext\n'}
+[9.670769] (moro_maze) StdoutLine: {'line': b'Creating /opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro-maze.egg-link (link to .)\n'}
+[9.671725] (moro_maze) StdoutLine: {'line': b'Installing local_control script to /opt/ros2_ws/src/moro/install/moro_maze/lib/moro_maze\n'}
+[9.674185] (moro_maze) StdoutLine: {'line': b'\n'}
+[9.674426] (moro_maze) StdoutLine: {'line': b'Installed /opt/ros2_ws/src/moro/build/moro_maze\n'}
+[9.675953] (moro_maze) StdoutLine: {'line': b'running symlink_data\n'}
+[9.676142] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/resource/moro_maze -> /opt/ros2_ws/src/moro/install/moro_maze/share/ament_index/resource_index/packages\n'}
+[9.676350] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/package.xml -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze\n'}
+[9.678137] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/launch/simulation_launch.py -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/launch\n'}
+[9.678545] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/maps/map.pgm -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/maps\n'}
+[9.679914] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/maps/map.yaml -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/maps\n'}
+[9.680110] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/worlds/default_gzsim.world -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/worlds\n'}
+[9.680247] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/worlds/default.world -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/worlds\n'}
+[9.681668] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/params/nav2_params.yaml -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/params\n'}
+[9.681884] (moro_maze) StdoutLine: {'line': b'symbolically linking /opt/ros2_ws/src/moro/build/moro_maze/rviz/config.rviz -> /opt/ros2_ws/src/moro/install/moro_maze/share/moro_maze/rviz\n'}
+[9.700821] (-) TimerEvent: {}
+[9.785930] (moro_maze) CommandEnded: {'returncode': 0}
+[9.802250] (-) TimerEvent: {}
+[9.856975] (moro_maze) JobEnded: {'identifier': 'moro_maze', 'rc': 0}
+[9.858268] (-) EventReactorShutdown: {}

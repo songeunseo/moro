@@ -1,0 +1,17 @@
+running develop
+/usr/lib/python3/dist-packages/setuptools/command/easy_install.py:363: UserWarning: Unbuilt egg for pytest-repeat [unknown version] (/usr/lib/python3/dist-packages)
+  self.local_index = Environment(self.shadow_path + sys.path)
+running egg_info
+writing moro_maze.egg-info/PKG-INFO
+writing dependency_links to moro_maze.egg-info/dependency_links.txt
+writing entry points to moro_maze.egg-info/entry_points.txt
+writing requirements to moro_maze.egg-info/requires.txt
+writing top-level names to moro_maze.egg-info/top_level.txt
+reading manifest file 'moro_maze.egg-info/SOURCES.txt'
+writing manifest file 'moro_maze.egg-info/SOURCES.txt'
+running build_ext
+Creating /opt/ros2_ws/src/moro/install/moro_maze/lib/python3.12/site-packages/moro-maze.egg-link (link to .)
+Installing local_control script to /opt/ros2_ws/src/moro/install/moro_maze/lib/moro_maze
+
+Installed /opt/ros2_ws/src/moro/build/moro_maze
+running symlink_data
