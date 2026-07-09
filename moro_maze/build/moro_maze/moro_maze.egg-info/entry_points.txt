@@ -1,2 +1,0 @@
-[console_scripts]
-local_control = moro_maze.local_control:main
