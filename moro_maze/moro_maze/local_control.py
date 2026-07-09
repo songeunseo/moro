@@ -47,7 +47,6 @@ class LocalController(Node):
         self.ts = 0.5              # sampling time [sec] -> 2Hz control loop
         self.horizon = 10          # lookahead steps -> 5 sec lookahead
         self.goal_tolerance = 0.16  # [m]
-        self.final_goal_tolerance = 0.20  # [m]
         self.max_v = 0.12
         self.max_w = 1.0
         self.declare_parameter('cmd_vel_stamped', True)
@@ -65,7 +64,6 @@ class LocalController(Node):
         self.global_path = None       # list of [x, y, theta]
         self.current_goal_id = 0
         self.last_control = np.array([0.0, 0.0])
-        self.goal_reached = False
         self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.05, D=0.8)
 
         # ---- TF ----
@@ -102,21 +100,11 @@ class LocalController(Node):
             theta = R.from_quat([q.x, q.y, q.z, q.w]).as_euler('xyz')[2]
             path.append([x, y, theta])
 
-        if not path:
-            self.get_logger().warn('Received empty global path. Stopping.')
-            self.global_path = None
-            self.goal_reached = False
-            self.stop_robot()
-            return
-
         if self.same_path(path):
             return
 
         self.global_path = path
         self.current_goal_id = 0
-        self.last_control = np.array([0.0, 0.0])
-        self.goal_reached = False
-        self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.05, D=0.8)
         self.get_logger().info(f'Received global path with {len(path)} waypoints.')
 
     def same_path(self, path):
@@ -128,12 +116,8 @@ class LocalController(Node):
         if self.global_path is None:
             return  # Node 1 경로 아직 안 옴 -> 대기
 
-        if self.goal_reached:
-            self.stop_robot()
-            return
-
         if self.current_goal_id >= len(self.global_path):
-            self.mark_goal_reached()
+            self.pub_cmd([0.0, 0.0])
             return  # 이미 도착, 정지 유지
 
         # 1. 로봇 위치 파악
@@ -143,17 +127,13 @@ class LocalController(Node):
             self.get_logger().warn(str(e))
             return
 
-        final_goalpose = self.goal_in_robot_frame(robotpose, self.global_path[-1])
-        final_dist = float(np.hypot(final_goalpose[0], final_goalpose[1]))
-        if final_dist <= self.final_goal_tolerance:
-            self.mark_goal_reached()
-            return
-
         # 2. 현재 목표
         goal = self.global_path[self.current_goal_id]
 
         # 3. 목표를 로봇 기준 좌표계로 변환
-        goalpose = self.goal_in_robot_frame(robotpose, goal)
+        T_robot = self.pose2tf_mat(robotpose)
+        T_goal = self.pose2tf_mat(goal)
+        goalpose = self.tf_mat2pose(np.linalg.inv(T_robot) @ T_goal)
 
         dist = float(np.hypot(goalpose[0], goalpose[1]))
 
@@ -177,24 +157,8 @@ class LocalController(Node):
             self.current_goal_id += 1
             self.get_logger().info(f'Reached waypoint {self.current_goal_id - 1}, moving to next.')
             if self.current_goal_id >= len(self.global_path):
-                self.mark_goal_reached()
-
-    def goal_in_robot_frame(self, robotpose, goal):
-        T_robot = self.pose2tf_mat(robotpose)
-        T_goal = self.pose2tf_mat(goal)
-        return self.tf_mat2pose(np.linalg.inv(T_robot) @ T_goal)
-
-    def mark_goal_reached(self):
-        if not self.goal_reached:
-            self.get_logger().info('Final goal reached. Stopping.')
-        self.goal_reached = True
-        self.current_goal_id = len(self.global_path)
-        self.last_control = np.array([0.0, 0.0])
-        self.robot_model_pt2 = PT2Block(ts=self.ts, T=0.05, D=0.8)
-        self.stop_robot()
-
-    def stop_robot(self):
-        self.pub_cmd([0.0, 0.0])
+                self.pub_cmd([0.0, 0.0])
+                self.get_logger().info('Final goal reached. Stopping.')
 
     # -------------------------------------------------
     # 핵심 알고리즘 (notebook 함수 그대로 이식)
