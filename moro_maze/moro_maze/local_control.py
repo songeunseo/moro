@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 class PT2Block:
-    """Discrete PT2 Block (Tustin approximation) - notebook과 동일"""
+    """Discrete PT2 Block (Tustin approximation) - same as the notebook."""
 
     def __init__(self, T=0, D=0, kp=1, ts=0, bufferLength=3) -> None:
         self.k1 = self.k2 = self.k3 = self.k4 = self.k5 = self.k6 = 0
@@ -91,7 +91,7 @@ class LocalController(Node):
     # callback
     # -------------------------------------------------
     def path_callback(self, msg: Path):
-        """Node 1이 발행하는 nav_msgs/Path -> [x, y, theta] 리스트로 변환"""
+        """Convert the nav_msgs/Path published by Node 1 into a list of [x, y, theta]."""
         path = []
         for pose_stamped in msg.poses:
             x = pose_stamped.pose.position.x
@@ -114,36 +114,36 @@ class LocalController(Node):
 
     def control_loop(self):
         if self.global_path is None:
-            return  # Node 1 경로 아직 안 옴 -> 대기
+            return  # Wait until the Node 1 path arrives.
 
         if self.current_goal_id >= len(self.global_path):
             self.pub_cmd([0.0, 0.0])
-            return  # 이미 도착, 정지 유지
+            return  # Already arrived; keep the robot stopped.
 
-        # 1. 로봇 위치 파악
+        # 1. Get the robot pose.
         try:
             robotpose = self.localise_robot()
         except RuntimeError as e:
             self.get_logger().warn(str(e))
             return
 
-        # 2. 현재 목표
+        # 2. Select the current goal.
         goal = self.global_path[self.current_goal_id]
 
-        # 3. 목표를 로봇 기준 좌표계로 변환
+        # 3. Transform the goal into the robot frame.
         T_robot = self.pose2tf_mat(robotpose)
         T_goal = self.pose2tf_mat(goal)
         goalpose = self.tf_mat2pose(np.linalg.inv(T_robot) @ T_goal)
 
         dist = float(np.hypot(goalpose[0], goalpose[1]))
 
-        # 4. waypoint 추종 제어 생성
+        # 4. Generate waypoint-tracking control.
         control = self.track_goal_control(goalpose)
         self.last_control = control
         self.robot_model_pt2.update(control[0])
         trajectory = self.rollout_trajectory(control)
 
-        # 7. 퍼블리시
+        # 7. Publish.
         self.pub_cmd(control)
         self.get_logger().info(
             f'cmd v={control[0]:.3f}, w={control[1]:.3f}, '
@@ -152,7 +152,7 @@ class LocalController(Node):
         self.pub_trajectory(trajectory)
         self.pub_goal(goalpose)
 
-        # 8. 목표 도달 판정 -> 다음 waypoint로
+        # 8. Check goal arrival and advance to the next waypoint.
         if dist < self.goal_tolerance:
             self.current_goal_id += 1
             self.get_logger().info(f'Reached waypoint {self.current_goal_id - 1}, moving to next.')
@@ -161,7 +161,7 @@ class LocalController(Node):
                 self.get_logger().info('Final goal reached. Stopping.')
 
     # -------------------------------------------------
-    # 핵심 알고리즘 (notebook 함수 그대로 이식)
+    # Core algorithm copied from the notebook functions.
     # -------------------------------------------------
     def localise_robot(self) -> np.ndarray:
         errors = []
