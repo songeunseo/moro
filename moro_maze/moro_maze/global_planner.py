@@ -3,7 +3,7 @@ from rclpy.node import Node
 from nav_msgs.srv import GetMap
 from nav_msgs.msg import OccupancyGrid
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
 
 import numpy as np
 from collections import deque
@@ -22,8 +22,21 @@ class GlobalPlanner(Node):
 
         self.nodes, self.edges = self.create_sparse_graph(self.grid)
 
-        robot_x = 2.0
-        robot_y = 1.0
+        self.global_path = None
+        self.path_pub = self.create_publisher(Path, '/global_planner/path', 10)
+        self.initial_pose_sub = self.create_subscription(
+            PoseWithCovarianceStamped,
+            '/initialpose',
+            self.initial_pose_callback,
+            10)
+        self.timer = self.create_timer(1.0, self.publish_path)
+
+        self.get_logger().info(
+            "Waiting for RViz 2D Pose Estimate on /initialpose")
+
+    def initial_pose_callback(self, msg):
+        robot_x = msg.pose.pose.position.x
+        robot_y = msg.pose.pose.position.y
 
         exit_x = 4.5
         exit_y = 4.0
@@ -57,10 +70,7 @@ class GlobalPlanner(Node):
         global_path.append([final_x, final_y, theta])
         
         self.global_path = global_path
-        
-        self.path_pub = self.create_publisher(Path, '/global_planner/path', 10)
-        self.timer = self.create_timer(1.0, self.publish_path)
-        
+
         self.get_logger().info(str(global_path))
         self.get_logger().info("Publishing path on /global_planner/path")
         
@@ -257,6 +267,9 @@ class GlobalPlanner(Node):
         return global_path
 
     def publish_path(self):
+        if self.global_path is None:
+            return
+
         msg = Path()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'map'

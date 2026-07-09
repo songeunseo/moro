@@ -46,6 +46,10 @@ In RViz, the `2D Pose Estimate` tool can be used to send a new initial pose on
 `/initialpose`. The global planner listens to this topic and replans the path
 from the selected pose.
 
+With `simulation_launch.py`, the robot waits until this initial pose is set.
+After launching, click `2D Pose Estimate` in RViz and select the robot's start
+pose on the map to publish the first global path.
+
 Note: `2D Pose Estimate` changes the planner's start estimate; it does not
 respawn or teleport the Gazebo robot. To change the physical spawn position of
 the simulated robot, use `x_pose` and `y_pose` when launching.
