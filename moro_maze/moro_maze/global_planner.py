@@ -3,13 +3,14 @@ from rclpy.node import Node
 from nav_msgs.srv import GetMap
 from nav_msgs.msg import OccupancyGrid
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped
 
 import numpy as np
 from collections import deque
 
-
+# ROS2-based Global Planner class
 class GlobalPlanner(Node):
+    # Initialize the map, graph, BFS path planning, and path publisher
     def __init__(self):
         super().__init__('global_planner')
     
@@ -22,21 +23,8 @@ class GlobalPlanner(Node):
 
         self.nodes, self.edges = self.create_sparse_graph(self.grid)
 
-        self.global_path = None
-        self.path_pub = self.create_publisher(Path, '/global_planner/path', 10)
-        self.initial_pose_sub = self.create_subscription(
-            PoseWithCovarianceStamped,
-            '/initialpose',
-            self.initial_pose_callback,
-            10)
-        self.timer = self.create_timer(1.0, self.publish_path)
-
-        self.get_logger().info(
-            "Waiting for RViz 2D Pose Estimate on /initialpose")
-
-    def initial_pose_callback(self, msg):
-        robot_x = msg.pose.pose.position.x
-        robot_y = msg.pose.pose.position.y
+        robot_x = 2.0
+        robot_y = 1.0
 
         exit_x = 4.5
         exit_y = 4.0
@@ -54,7 +42,7 @@ class GlobalPlanner(Node):
 
         global_path = self.make_global_path(path)
 
-# Add final waypoint to drive closer to the maze edge
+        # Add final waypoint to drive closer to the maze edge
         final_x = 4.5
         final_y = 4.0
         
@@ -70,10 +58,15 @@ class GlobalPlanner(Node):
         global_path.append([final_x, final_y, theta])
         
         self.global_path = global_path
-
+        
+        self.path_pub = self.create_publisher(Path, '/global_planner/path', 10)
+        
+        self.timer = self.create_timer(1.0, self.publish_path)
+        
         self.get_logger().info(str(global_path))
         self.get_logger().info("Publishing path on /global_planner/path")
         
+    # Retrieve the Occupancy Grid Map using the GetMap service
     def get_map(self, timeout_sec=5.0) -> OccupancyGrid:
         client = self.create_client(GetMap, '/map_server/map')
 
@@ -90,6 +83,7 @@ class GlobalPlanner(Node):
 
         return future.result().map
 
+    # Check whether a grid cell is traversable
     def is_free(self, row, col):
         h, w = self.grid.shape
 
@@ -98,9 +92,11 @@ class GlobalPlanner(Node):
 
         return self.grid[row, col] == 0
 
+    # Convert grid coordinates into a node name
     def to_node_name(self, row, col):
         return f"{row}.{col}"
 
+    # Convert a node name into world coordinates
     def from_node_name(self, name):
         row, col = name.split(".")
         row = int(row)
@@ -115,6 +111,7 @@ class GlobalPlanner(Node):
 
         return np.array([x, y])
 
+    # Check whether two nodes can be connected without obstacles
     def path_is_free(self, row1, col1, row2, col2):
         if row1 == row2:
             start = min(col1, col2)
@@ -139,6 +136,7 @@ class GlobalPlanner(Node):
         else:
             return False
 
+    # Create a sparse graph using representative grid cells
     def create_sparse_graph(self, grid):
         candidate_rows = [4, 10, 16, 22]
         candidate_cols = [4, 10, 16, 22]
@@ -187,6 +185,7 @@ class GlobalPlanner(Node):
 
         return nodes, edges
 
+    # Find the graph node closest to the current position
     def get_nearest_node(self, robot_x, robot_y):
         min_dist = float("inf")
         nearest_node = None
@@ -206,6 +205,7 @@ class GlobalPlanner(Node):
 
         return nearest_node
 
+    # Perform BFS to search for a path from the start node to the goal node
     def bfs(self, start, goal):
         queue = deque([start])
         discovered_nodes = {start: None}
@@ -235,6 +235,7 @@ class GlobalPlanner(Node):
 
         return discovered_nodes
 
+    # Reconstruct the final path from the BFS search result
     def reconstruct_path(self, discovered_nodes, start, goal):
         if goal not in discovered_nodes:
             self.get_logger().warn("No path found")
@@ -250,6 +251,7 @@ class GlobalPlanner(Node):
         path.reverse()
         return path
 
+    # Convert the planned path into a global path with [x, y, θ]
     def make_global_path(self, path):
         global_path = []
 
@@ -266,10 +268,8 @@ class GlobalPlanner(Node):
 
         return global_path
 
+    # Publish the global path as a ROS2 Path message
     def publish_path(self):
-        if self.global_path is None:
-            return
-
         msg = Path()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'map'
@@ -288,7 +288,7 @@ class GlobalPlanner(Node):
     
         self.path_pub.publish(msg)
     
-
+# Start the Global Planner node
 def main(args=None):
     rclpy.init(args=args)
 
